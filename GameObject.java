@@ -10,6 +10,13 @@ public class GameObject implements Cloneable, Icon {
     protected int size;
     protected float speed;
     protected Color color;
+    protected int health;
+    protected int attackDamage;
+    protected float attackRange;
+    protected float attackCooldown;
+    protected float lastAttackTime;
+    protected int fraction;
+    protected boolean isAlive = true;
 
     public GameObject() {
         id = -1;
@@ -66,6 +73,22 @@ public class GameObject implements Cloneable, Icon {
             this.x += normX * speed;
             this.y += normY * speed;
         }
+    }
+
+    public void takeDamage(int damage) {
+
+    }
+
+    public void destroy() {
+
+    }
+
+    public boolean canAttack() {
+        return false;
+    }
+
+    public void attack() {
+
     }
 
     protected void draw(Graphics g) {
