@@ -57,8 +57,8 @@ public class GameObject implements Cloneable, Icon {
         this.size = size;
     }
 
-    protected void update() {
-        x += (int) (speed);
+    protected void update(float dt) {
+        x += (int) (speed * dt);
     }
 
     public void moveTowards(GameObject target) {
@@ -132,6 +132,85 @@ public class GameObject implements Cloneable, Icon {
         return speed;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    public void setY(float y) {
+        this.y = y;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public int getAttackDamage() {
+        return attackDamage;
+    }
+
+    public void setAttackDamage(int attackDamage) {
+        this.attackDamage = attackDamage;
+    }
+
+    public float getAttackRange() {
+        return attackRange;
+    }
+
+    public void setAttackRange(float attackRange) {
+        this.attackRange = attackRange;
+    }
+
+    public float getAttackCooldown() {
+        return attackCooldown;
+    }
+
+    public void setAttackCooldown(float attackCooldown) {
+        this.attackCooldown = attackCooldown;
+    }
+
+    public float getLastAttackTime() {
+        return lastAttackTime;
+    }
+
+    public void setLastAttackTime(float lastAttackTime) {
+        this.lastAttackTime = lastAttackTime;
+    }
+
+    public int getFraction() {
+        return fraction;
+    }
+
+    public void setFraction(int fraction) {
+        this.fraction = fraction;
+    }
+
+    public boolean isAlive() {
+        return isAlive;
+    }
+
+    public void setAlive(boolean alive) {
+        isAlive = alive;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -169,5 +248,17 @@ public class GameObject implements Cloneable, Icon {
     @Override
     public int getIconHeight() {
         return size;
+    }
+
+    @Override
+    public String toString() {
+        return "GameObject{" +
+                "id=" + id +
+                ", x=" + x +
+                ", y=" + y +
+                ", size=" + size +
+                ", speed=" + speed +
+                ", color=" + color +
+                '}';
     }
 }
