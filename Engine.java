@@ -76,6 +76,17 @@ public class Engine {
         return rightA > leftB && leftA < rightB && bottomA > topB && topA < bottomB;
     }
 
+    public boolean collisionCircle(GameObject a, GameObject b) {
+        float radiusA = a.getSize() / 2f;
+        float radiusB = b.getSize() / 2f;
+
+        float deltax = a.getX() - b.getX();
+        float deltay = a.getY() - b.getY();
+        float distance = (float) Math.sqrt(deltax * deltax + deltay * deltay);
+
+        return distance < radiusA + radiusB;
+    }
+
     public void spawnObjectPattern(List<GameObject> pattern, long delay) {
         // создаёт новый поток
         Thread spawnThread = new Thread(() -> {
