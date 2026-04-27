@@ -8,10 +8,6 @@ public class BaseUnit extends GameObject {
     private static final float BASE_ATTACK_COOLDOWN = 1f;
     private float lastAttackTime = -5f;
 
-    // КООРДИНАТЫ БАШНИ (ПОМЕНЯЙ НА СВОИ)
-    private static final float TOWER_X = 500;
-    private static final float TOWER_Y = 300;
-
     public BaseUnit() {
         this.fraction = 2;
     }
@@ -19,7 +15,7 @@ public class BaseUnit extends GameObject {
     public BaseUnit(int id, float x, float y, int size, float speed) {
         super(id, x, y, size, BASE_SPEED, Color.BLACK);
         attackCooldown = BASE_ATTACK_COOLDOWN;
-        attackDamage = 50;  // УВЕЛИЧИЛ УРОН
+        attackDamage = 50;
         health = 100;
         fraction = 2;
     }
@@ -32,47 +28,58 @@ public class BaseUnit extends GameObject {
     public void update(float deltaTime) {
         if (!isAlive) return;
 
-        // ДВИГАЕМСЯ К БАШНЕ
-        float dx = TOWER_X - x;
-        float dy = TOWER_Y - y;
+        // ДИНАМИЧЕСКИЙ ПОИСК БАШНИ
+        GameObject tower = findTower();
+
+        if (tower == null) return;
+
+        float dx = tower.getX() - x;
+        float dy = tower.getY() - y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
 
         if (dist > 10) {
-            // Движение
+            // Движение к башне
             float angle = (float) Math.atan2(dy, dx);
             x += Math.cos(angle) * BASE_SPEED * deltaTime;
             y += Math.sin(angle) * BASE_SPEED * deltaTime;
         } else {
-            // БЬЕМ БАШНЮ КАЖДУЮ СЕКУНДУ
+            // БЬЕМ БАШНЮ
             if (engine != null) {
-
                 float currentTime = engine.getGameTime();
                 if (currentTime - lastAttackTime >= attackCooldown) {
-                    // ИЩЕМ БАШНЮ ВО ВСЕХ ОБЪЕКТАХ
-                    List<GameObject> objects = engine.getObjects();
-                    if (objects != null) {
-                        if (engine == null) return; // Дополнительная проверка на случай null engine
-
-                        List<GameObject> gameObjects = engine.getObjects();
-                        // проверяем, не null ли список объектов
-                        if (objects == null) {
-                            return; // Если список объектов не получен, просто выходим из метода
-                        }
-                        for (GameObject obj : objects) {
-                            if (obj == null) continue;
-                            String className = obj.getClass().getSimpleName();
-                            if (className.contains("Tower") && obj.isAlive()) {
-                                // НАШЛИ БАШНЮ - БЬЕМ!
-                                obj.takeDamage(attackDamage);
-                                System.out.println("⚾⚾⚾ BASE UNIT HITS " + className + " FOR " + attackDamage + " DAMAGE! ⚾⚾⚾");
-                                lastAttackTime = currentTime;
-                                break;
-                            }
-                        }
+                    // ПРОВЕРКА ФРАКЦИИ И instanceof
+                    if (tower.getFraction() != this.fraction && tower.isAlive()) {
+                        tower.takeDamage(attackDamage);
+                        System.out.println("⚾⚾⚾ BASE UNIT HITS TOWER FOR " + attackDamage + " DAMAGE! ⚾⚾⚾");
+                        lastAttackTime = currentTime;
                     }
                 }
             }
         }
+    }
+
+    /**
+     * ДИНАМИЧЕСКИЙ ПОИСК БАШНИ 
+     */
+    private GameObject findTower() {
+        if (engine == null) return null;
+
+        List<GameObject> objects = engine.getObjects();
+        if (objects == null) return null;
+
+        for (GameObject obj : objects) {
+            if (obj == null) continue;
+            if (!obj.isAlive()) continue;
+
+            // ПРОВЕРКА ФРАКЦИИ: ищем ТОЛЬКО вражеские объекты
+            if (obj.getFraction() == this.fraction) continue;
+
+            // НАДЁЖНАЯ ПРОВЕРКА через instanceof
+            if (obj instanceof Tower) {
+                return obj;
+            }
+        }
+        return null;
     }
 
     @Override
