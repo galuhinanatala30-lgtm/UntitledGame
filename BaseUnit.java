@@ -1,6 +1,5 @@
 import java.awt.*;
 import java.awt.geom.Path2D;
-import java.util.List;
 
 public class BaseUnit extends GameObject {
 
@@ -8,13 +7,17 @@ public class BaseUnit extends GameObject {
     private static final float BASE_ATTACK_COOLDOWN = 1f;
     private float lastAttackTime = -5f;
 
+    private GameObject targetEnemy;
+
     public BaseUnit() {
         this.fraction = 2;
+        this.attackRange = 500f;  // ← КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
     }
 
     public BaseUnit(int id, float x, float y, int size, float speed) {
         super(id, x, y, size, BASE_SPEED, Color.BLACK);
         attackCooldown = BASE_ATTACK_COOLDOWN;
+        attackRange = 500f;
         attackDamage = 50;
         health = 100;
         fraction = 2;
@@ -27,59 +30,26 @@ public class BaseUnit extends GameObject {
     @Override
     public void update(float deltaTime) {
         if (!isAlive) return;
+        if (engine == null) return;
 
-        // ДИНАМИЧЕСКИЙ ПОИСК БАШНИ
-        GameObject tower = findTower();
+        if (targetEnemy == null || !targetEnemy.isAlive()) {
+            targetEnemy = engine.findNearestEnemy(this, attackRange);
+        }
 
-        if (tower == null) return;
+        if (targetEnemy != null) {
+            float dist = distanceTo(targetEnemy);
 
-        float dx = tower.getX() - x;
-        float dy = tower.getY() - y;
-        float dist = (float) Math.sqrt(dx * dx + dy * dy);
-
-        if (dist > 10) {
-            // Движение к башне
-            float angle = (float) Math.atan2(dy, dx);
-            x += Math.cos(angle) * BASE_SPEED * deltaTime;
-            y += Math.sin(angle) * BASE_SPEED * deltaTime;
-        } else {
-            // БЬЕМ БАШНЮ
-            if (engine != null) {
-                float currentTime = engine.getGameTime();
-                if (currentTime - lastAttackTime >= attackCooldown) {
-                    // ПРОВЕРКА ФРАКЦИИ И instanceof
-                    if (tower.getFraction() != this.fraction && tower.isAlive()) {
-                        tower.takeDamage(attackDamage);
-                        System.out.println("⚾⚾⚾ BASE UNIT HITS TOWER FOR " + attackDamage + " DAMAGE! ⚾⚾⚾");
-                        lastAttackTime = currentTime;
-                    }
+            if (dist > 50) {
+                engine.moveTowards(this, targetEnemy);
+            } else {
+                if (canAttack(engine.getGameTime())) {
+                    targetEnemy.takeDamage(attackDamage);
+                    System.out.println("⚾ BASE UNIT HITS " + targetEnemy.getClass().getSimpleName() +
+                            " FOR " + attackDamage + " DAMAGE! ⚾");
+                    lastAttackTime = engine.getGameTime();
                 }
             }
         }
-    }
-
-    /**
-     * ДИНАМИЧЕСКИЙ ПОИСК БАШНИ 
-     */
-    private GameObject findTower() {
-        if (engine == null) return null;
-
-        List<GameObject> objects = engine.getObjects();
-        if (objects == null) return null;
-
-        for (GameObject obj : objects) {
-            if (obj == null) continue;
-            if (!obj.isAlive()) continue;
-
-            // ПРОВЕРКА ФРАКЦИИ: ищем ТОЛЬКО вражеские объекты
-            if (obj.getFraction() == this.fraction) continue;
-
-            // НАДЁЖНАЯ ПРОВЕРКА через instanceof
-            if (obj instanceof Tower) {
-                return obj;
-            }
-        }
-        return null;
     }
 
     @Override
@@ -110,6 +80,11 @@ public class BaseUnit extends GameObject {
         g2.fillOval(Math.round(x + 33 * k), Math.round(y - 55 * k),
                 Math.round(5 * k), Math.round(10 * k));
 
+        drawBat(g2, k);
+        drawHealthBar(g2, k);
+    }
+
+    private void drawBat(Graphics2D g2, float k) {
         Graphics2D gBat = (Graphics2D) g2.create();
         double angle = Math.toRadians(-40);
         int bx = Math.round(x + 50 * k);
@@ -153,8 +128,6 @@ public class BaseUnit extends GameObject {
         gBat.drawLine(Math.round(bx + 20 * k), Math.round(by - 2 * k),
                 Math.round(bx + 105 * k), Math.round(by - 8 * k));
         gBat.dispose();
-
-        drawHealthBar(g2, k);
     }
 
     private void drawHealthBar(Graphics2D g2d, float k) {
